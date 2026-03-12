@@ -31,7 +31,6 @@
         
         h3 { color: var(--zap-green); margin-top: 0; margin-bottom: 15px; font-size: 1.2rem; }
 
-        /* Controles Superiores */
         .top-controls { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
         .control-group { flex: 1; min-width: 250px; background: var(--bg-dark); padding: 15px; border-radius: 8px; border-left: 4px solid var(--zap-green); }
         
@@ -40,10 +39,10 @@
             border: 1px solid #222d34; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: vertical;
         }
 
-        .radio-group { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
-        .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .radio-group { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; background: var(--bg-input); padding: 10px; border-radius: 6px;}
+        .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px;}
 
-        /* Linhas da Letra - Adaptado para Mobile */
+        /* Linhas da Letra */
         .lyric-row {
             display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;
             background-color: var(--bg-dark); padding: 12px; border-radius: 8px; border-left: 4px solid var(--zap-green);
@@ -56,14 +55,20 @@
         }
         input[type="text"]:focus { outline: none; border-color: var(--zap-green); }
 
-        .time-group { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; }
-        .time-group input { width: 60px !important; text-align: center; }
+        /* Controles de Tempo Inteligentes */
+        .time-group { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; background: var(--bg-input); border-radius: 6px; padding-right: 5px;}
+        .time-group input { width: 75px !important; text-align: center; font-family: monospace; background: transparent;}
+        .btn-time { 
+            background: #3b4a54; color: white; border: none; border-radius: 4px; 
+            cursor: pointer; padding: 5px 8px; font-size: 12px; transition: 0.2s;
+        }
+        .btn-time:hover { background: var(--zap-green); color: black; }
 
         .file-upload {
             background-color: var(--bg-input); color: #8696a0; border-radius: 6px;
             padding: 10px; cursor: pointer; text-align: center;
             font-size: 14px; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            flex-grow: 1; min-width: 120px;
+            width: 100px;
         }
         .file-upload:hover { border-color: var(--zap-green); }
         input[type="file"] { display: none; }
@@ -74,50 +79,34 @@
         .btn-add:hover { background-color: var(--zap-green); color: #000; }
         .btn-remove { background-color: #f15c6d; color: white; padding: 10px 15px; flex-shrink: 0; }
         
-        /* Botoes de Ação Inferiores */
         .action-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .btn-preview {
-            background-color: #3b4a54; color: white; padding: 15px 30px; font-size: 18px;
-            border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 2px solid #8696a0;
-        }
+        .btn-preview { background-color: #3b4a54; color: white; padding: 15px 30px; font-size: 18px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 2px solid #8696a0; }
         .btn-preview:hover { background-color: #4b5a64; transform: translateY(-2px); }
-        
-        .btn-record {
-            background-color: var(--zap-green); color: #0b141a; padding: 15px 40px; font-size: 18px;
-            border-radius: 30px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
-        }
+        .btn-record { background-color: var(--zap-green); color: #0b141a; padding: 15px 40px; font-size: 18px; border-radius: 30px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); }
         .btn-record:hover { background-color: #21c05b; transform: translateY(-2px); }
-        
         .btn-preview:disabled, .btn-record:disabled { background-color: var(--bg-input); color: #8696a0; cursor: not-allowed; transform: none; border-color: transparent;}
 
-        /* Canvas Responsivo */
         .canvas-container { margin-top: 20px; display: flex; justify-content: center; width: 100%; }
-        canvas { 
-            background-color: #000; border: 2px solid #222d34; border-radius: 10px; 
-            max-width: 100%; height: auto; /* A Mágica da Responsividade acontece aqui */
-            max-height: 50vh; 
-        }
+        canvas { background-color: #000; border: 2px solid #222d34; border-radius: 10px; max-width: 100%; height: auto; max-height: 50vh; }
 
-        /* Mobile Adjustments Extras */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .lyric-row { flex-direction: column; align-items: stretch; }
             .time-group { justify-content: space-between; width: 100%; }
             .action-buttons button { width: 100%; }
-            input[type="color"] { align-self: center; }
         }
     </style>
 </head>
 <body>
 
     <h1>Zap48 Coded Lyrics Maker 🎤💚</h1>
-    <p style="color: #8696a0; margin-top: 0; font-size: 0.9rem;">Importe letras, teste a sincronia e grave!</p>
+    <p style="color: #8696a0; margin-top: 0; font-size: 0.9rem;">Milissegundos suportados! Use o botão ⏱️ para capturar o tempo da música tocando.</p>
     
     <div class="panel">
         <div class="top-controls">
             <div class="control-group">
-                <h3>⚙️ Configurações</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="format" value="canva" checked onchange="atualizarFormato()"> Canva/TikTok (9:16)</label>
+                <h3>⚙️ Formato & Fundo</h3>
+                <div class="radio-group" style="background: transparent; padding: 0;">
+                    <label><input type="radio" name="format" value="canva" checked onchange="atualizarFormato()"> Canva (9:16)</label>
                     <label><input type="radio" name="format" value="yt" onchange="atualizarFormato()"> YouTube (16:9)</label>
                 </div>
                 <br>
@@ -128,21 +117,28 @@
             </div>
 
             <div class="control-group">
-                <h3>📝 Importar Letras</h3>
-                <textarea id="import-text" placeholder="Cole aqui no formato:&#10;Sakura: I remember the day&#10;Chaewon: When we first met"></textarea>
-                <button class="btn-add" style="margin-top:5px;" onclick="importarLetras()">Importar</button>
+                <h3>🎨 Estilo Visual</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="estilo" value="avatar" checked> Com Foto do Membro</label>
+                    <label><input type="radio" name="estilo" value="texto"> Somente Texto (Clean)</label>
+                </div>
+                <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">*A opção "Somente Texto" esconde a imagem do membro e foca na letra, usando a cor apenas no nome.</p>
             </div>
         </div>
     </div>
 
     <div class="panel">
         <h3>Painel de Letras 📝</h3>
+        <div class="top-controls" style="margin-bottom: 10px;">
+             <textarea id="import-text" placeholder="Importação Rápida. Cole aqui:&#10;Sakura: I remember the day&#10;Chaewon: When we first met"></textarea>
+             <button class="btn-add" style="margin-top:5px;" onclick="importarLetras()">⬇️ Importar Letras</button>
+        </div>
         <div id="lyrics-list"></div>
         <button class="btn-add" onclick="adicionarLinha()">+ Adicionar Linha Vazia</button>
     </div>
 
     <div class="action-buttons">
-        <button id="previewBtn" class="btn-preview" onclick="alternarPreview()">▶️ Testar Sincronia</button>
+        <button id="previewBtn" class="btn-preview" onclick="alternarPreview()">▶️ Tocar / Testar Sincronia</button>
         <button id="startBtn" class="btn-record" onclick="iniciarGravacao()">🔴 Gravar Vídeo</button>
     </div>
     
@@ -167,16 +163,12 @@
         let bgMediaElement = null;
         let audioContext = null;
         let isPreviewMode = false;
-        let finalMimeType = 'video/webm'; // Fallback padrão
+        let finalMimeType = 'video/webm';
 
         function atualizarFormato() {
             const formato = document.querySelector('input[name="format"]:checked').value;
-            if (formato === 'yt') {
-                canvas.width = 1920; canvas.height = 1080;
-            } else {
-                canvas.width = 1080; canvas.height = 1920;
-            }
-            // Desenha um fundo preto inicial para evitar tela transparente
+            canvas.width = (formato === 'yt') ? 1920 : 1080;
+            canvas.height = (formato === 'yt') ? 1080 : 1920;
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         window.onload = atualizarFormato;
@@ -202,21 +194,46 @@
             }
         }
 
+        // --- NOVO: Captura de Tempo Inteligente ---
+        function capturarTempoAtual(btn, tipo) {
+            if (!bgMediaElement) {
+                alert("Por favor, adicione uma música ou vídeo de fundo primeiro!");
+                return;
+            }
+            const tempoAtual = bgMediaElement.currentTime;
+            const min = Math.floor(tempoAtual / 60);
+            const seg = (tempoAtual % 60).toFixed(2); // Retorna milissegundos precisos
+            const tempoFormatado = `${min.toString().padStart(2, '0')}:${seg.padStart(5, '0')}`;
+            
+            const row = btn.closest('.lyric-row');
+            if (tipo === 'start') row.querySelector('.input-start').value = tempoFormatado;
+            else row.querySelector('.input-end').value = tempoFormatado;
+        }
+
+        function converterTempoParaMs(tempoString) {
+            if (!tempoString) return 0;
+            if (!tempoString.includes(':')) return (parseFloat(tempoString) || 0) * 1000;
+            const partes = tempoString.split(':');
+            return ((parseInt(partes[0], 10) || 0) * 60 + (parseFloat(partes[1]) || 0)) * 1000;
+        }
+
         function adicionarLinha(memberStr = '', textStr = '') {
             const rowId = `row-${Date.now()}-${Math.floor(Math.random()*1000)}`;
             const row = document.createElement('div');
             row.className = 'lyric-row';
             row.innerHTML = `
-                <label class="file-upload" for="file-${rowId}"><span class="file-upload-label">Foto...</span></label>
+                <label class="file-upload" for="file-${rowId}"><span class="file-upload-label">Foto (PNG/JPG)</span></label>
                 <input type="file" id="file-${rowId}" class="input-file" accept="image/png, image/jpeg" onchange="handleFileUpload(this)">
-                <input type="color" class="input-color" value="#25D366" title="Cor do Nome">
+                <input type="color" class="input-color" value="#25D366" title="Cor do Membro">
                 <input type="text" class="input-member" placeholder="Nome" value="${memberStr}">
                 <input type="text" class="input-text" placeholder="Letra da música..." value="${textStr}" style="flex-grow: 3;">
                 
                 <div class="time-group">
-                    <input type="text" class="input-start" placeholder="00:00" title="Início">
-                    <span style="color: #8696a0;">até</span>
-                    <input type="text" class="input-end" placeholder="00:00" title="Fim">
+                    <input type="text" class="input-start" placeholder="00:00.00" title="Início">
+                    <button class="btn-time" onclick="capturarTempoAtual(this, 'start')" title="Pegar tempo da música tocando">⏱️</button>
+                    <span style="color: #8696a0; margin: 0 5px;">até</span>
+                    <input type="text" class="input-end" placeholder="00:00.00" title="Fim">
+                    <button class="btn-time" onclick="capturarTempoAtual(this, 'end')" title="Pegar tempo da música tocando">⏱️</button>
                 </div>
                 <button class="btn-remove" onclick="this.parentElement.remove()">X</button>
             `;
@@ -236,12 +253,6 @@
                 }
             });
             if(adicionou) document.getElementById('import-text').value = ''; 
-        }
-
-        function converterTempoParaMs(tempoString) {
-            if (!tempoString || !tempoString.includes(':')) return 0;
-            const partes = tempoString.split(':');
-            return ((parseInt(partes[0], 10) || 0) * 60 + (parseFloat(partes[1]) || 0)) * 1000;
         }
 
         function carregarImagemDoArquivo(file) {
@@ -274,7 +285,9 @@
         function drawFrame(timestamp) {
             if (!startTime) startTime = timestamp;
             const tempoAtual = timestamp - startTime; 
+            
             const isYT = document.querySelector('input[name="format"]:checked').value === 'yt';
+            const apenasTexto = document.querySelector('input[name="estilo"]:checked').value === 'texto';
 
             ctx.fillStyle = '#0b141a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -291,27 +304,46 @@
             let linhaAtual = activeLyrics.find(l => tempoAtual >= l.start && tempoAtual <= l.end);
 
             if (linhaAtual) {
-                const targetSize = isYT ? 500 : 600;
-                const targetX = isYT ? 200 : (canvas.width - targetSize) / 2;
-                const targetY = isYT ? (canvas.height - targetSize) / 2 : 400;
+                ctx.shadowColor = "black"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
 
-                if (linhaAtual.fotoElement) {
-                    const img = linhaAtual.fotoElement;
-                    const imgRatio = img.width / img.height;
-                    let finalW = targetSize, finalH = targetSize;
-                    if (imgRatio > 1) finalH = targetSize / imgRatio; else finalW = targetSize * imgRatio;
-                    ctx.drawImage(img, targetX + (targetSize - finalW) / 2, targetY + (targetSize - finalH) / 2, finalW, finalH);
+                if (apenasTexto) {
+                    // --- MODO: SOMENTE TEXTO ---
+                    ctx.textAlign = 'center';
+                    const textX = canvas.width / 2;
+                    const nameY = canvas.height / 2 - 40; // Centralizado
+
+                    ctx.fillStyle = linhaAtual.color;
+                    ctx.font = 'bold 80px sans-serif'; 
+                    ctx.fillText(linhaAtual.member, textX, nameY);
+
+                    ctx.fillStyle = '#ffffff'; 
+                    ctx.font = '60px sans-serif'; 
+                    ctx.fillText(linhaAtual.text, textX, nameY + 120);
                 } else {
-                    ctx.fillStyle = linhaAtual.color; ctx.fillRect(targetX, targetY, targetSize, targetSize); 
+                    // --- MODO: COM AVATAR/COR ---
+                    const targetSize = isYT ? 500 : 600;
+                    const targetX = isYT ? 200 : (canvas.width - targetSize) / 2;
+                    const targetY = isYT ? (canvas.height - targetSize) / 2 : 400;
+
+                    if (linhaAtual.fotoElement) {
+                        const img = linhaAtual.fotoElement;
+                        const imgRatio = img.width / img.height;
+                        let finalW = targetSize, finalH = targetSize;
+                        if (imgRatio > 1) finalH = targetSize / imgRatio; else finalW = targetSize * imgRatio;
+                        ctx.drawImage(img, targetX + (targetSize - finalW) / 2, targetY + (targetSize - finalH) / 2, finalW, finalH);
+                    } else {
+                        // Caixa colorida de fallback
+                        ctx.fillStyle = linhaAtual.color; ctx.fillRect(targetX, targetY, targetSize, targetSize); 
+                    }
+
+                    ctx.fillStyle = linhaAtual.color; ctx.textAlign = isYT ? 'left' : 'center';
+                    const textX = isYT ? targetX + targetSize + 100 : canvas.width / 2;
+                    const nameY = isYT ? targetY + 200 : targetY + targetSize + 150;
+                    
+                    ctx.font = 'bold 80px sans-serif'; ctx.fillText(linhaAtual.member, textX, nameY);
+                    ctx.fillStyle = '#ffffff'; ctx.font = '60px sans-serif'; ctx.fillText(linhaAtual.text, textX, isYT ? nameY + 120 : nameY + 100);
                 }
 
-                ctx.fillStyle = linhaAtual.color; ctx.textAlign = isYT ? 'left' : 'center';
-                const textX = isYT ? targetX + targetSize + 100 : canvas.width / 2;
-                const nameY = isYT ? targetY + 200 : targetY + targetSize + 150;
-                
-                ctx.shadowColor = "black"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
-                ctx.font = 'bold 80px sans-serif'; ctx.fillText(linhaAtual.member, textX, nameY);
-                ctx.fillStyle = '#ffffff'; ctx.font = '60px sans-serif'; ctx.fillText(linhaAtual.text, textX, isYT ? nameY + 120 : nameY + 100);
                 ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
             }
 
@@ -321,13 +353,11 @@
 
         async function alternarPreview() {
             if (isPreviewMode) { pararProcesso(); return; }
-            
             startBtn.disabled = true; previewBtn.innerText = "⏹ Parar Preview";
             activeLyrics = await capturarLetras();
             isPreviewMode = true; startTime = null;
 
             if (bgMediaElement) { bgMediaElement.currentTime = 0; bgMediaElement.play(); }
-            // Rola a tela suavemente para o canvas no celular
             canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
             drawFrame(performance.now());
         }
@@ -336,10 +366,7 @@
             previewBtn.disabled = true; startBtn.disabled = true; startBtn.innerText = "Preparando...";
             activeLyrics = await capturarLetras();
             
-            if (activeLyrics.length === 0 && !bgMediaElement) {
-                alert("Adicione letras ou uma música de fundo!");
-                resetarBotoes(); return;
-            }
+            if (activeLyrics.length === 0 && !bgMediaElement) { alert("Adicione letras ou fundo!"); resetarBotoes(); return; }
 
             isPreviewMode = false; recordedChunks = []; startTime = null;
             startBtn.innerText = "Gravando... Aguarde!";
@@ -353,7 +380,7 @@
                 if(!bgMediaElement.sourceNode) bgMediaElement.sourceNode = audioContext.createMediaElementSource(bgMediaElement);
                 
                 const dest = audioContext.createMediaStreamDestination();
-                bgMediaElement.sourceNode.disconnect(); // Limpa conexões antigas
+                bgMediaElement.sourceNode.disconnect();
                 bgMediaElement.sourceNode.connect(dest);
                 bgMediaElement.sourceNode.connect(audioContext.destination); 
                 
@@ -364,15 +391,9 @@
             }
 
             const combinedStream = new MediaStream(finalTracks);
-            
-            // Tenta forçar o MP4 primeiro (para Safari/Alguns Mobiles), senão cai pro WebM
-            if (MediaRecorder.isTypeSupported('video/mp4; codecs="avc1.42E01E, mp4a.40.2"')) {
-                finalMimeType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
-            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-                finalMimeType = 'video/mp4';
-            } else {
-                finalMimeType = 'video/webm; codecs=vp9';
-            }
+            if (MediaRecorder.isTypeSupported('video/mp4; codecs="avc1.42E01E, mp4a.40.2"')) { finalMimeType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'; } 
+            else if (MediaRecorder.isTypeSupported('video/mp4')) { finalMimeType = 'video/mp4'; } 
+            else { finalMimeType = 'video/webm; codecs=vp9'; }
 
             mediaRecorder = new MediaRecorder(combinedStream, { mimeType: finalMimeType });
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -385,33 +406,24 @@
         function pararProcesso() {
             cancelAnimationFrame(animationFrameId);
             if (bgMediaElement) { bgMediaElement.pause(); bgMediaElement.currentTime = 0; }
-            if (!isPreviewMode && mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            } else {
-                resetarBotoes(); // Se era só preview, volta os botões ao normal
-            }
+            if (!isPreviewMode && mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); } 
+            else { resetarBotoes(); }
         }
 
         function salvarVideo() {
             const blob = new Blob(recordedChunks, { type: finalMimeType });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            
-            // Define a extensão certa baseado no que o navegador conseguiu gravar
+            const a = document.createElement('a'); a.href = url;
             const extensao = finalMimeType.includes('mp4') ? 'mp4' : 'webm';
             const isYT = document.querySelector('input[name="format"]:checked').value === 'yt';
-            
             a.download = `zap48_lyrics_${isYT ? 'youtube' : 'canva'}.${extensao}`;
-            a.click();
-            URL.revokeObjectURL(url);
-            resetarBotoes();
+            a.click(); URL.revokeObjectURL(url); resetarBotoes();
         }
 
         function resetarBotoes() {
             isPreviewMode = false;
             startBtn.disabled = false; startBtn.innerText = "🔴 Gravar Vídeo";
-            previewBtn.disabled = false; previewBtn.innerText = "▶️ Testar Sincronia";
+            previewBtn.disabled = false; previewBtn.innerText = "▶️ Tocar / Testar Sincronia";
         }
 
         adicionarLinha();
