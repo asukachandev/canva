@@ -3,167 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zap48 Coded Lyrics Maker</title>
+    <title>Zap48 Lyrics Studio</title>
     <style>
         :root {
             --zap-green: #25D366;
-            --bg-dark: #0b141a;
-            --bg-panel: #111b21;
-            --bg-input: #2a3942;
-            --text-main: #e9edef;
+            --bg-base: #000000;
+            --bg-panel: #141414;
+            --bg-track: #1e1e1e;
+            --bg-hover: #2a2a2a;
+            --border-color: #333333;
+            --text-main: #f5f5f5;
+            --text-dim: #999999;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark); color: var(--text-main);
-            text-align: center; margin: 0; padding: 15px;
-            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-base); color: var(--text-main);
+            margin: 0; padding: 0; display: flex; flex-direction: column;
+            height: 100vh; overflow: hidden; /* Evita scroll na página toda, foca nas áreas */
         }
+
+        /* --- 1. ÁREA DO MONITOR (PREVIEW FIXO NO TOPO) --- */
+        .monitor-area {
+            background-color: #0a0a0a; border-bottom: 1px solid var(--border-color);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px; z-index: 100;
+        }
+
+        .canvas-wrapper {
+            position: relative; width: 100%; max-width: 400px; 
+            display: flex; justify-content: center;
+        }
+
+        canvas {
+            background-color: #000; border-radius: 8px;
+            max-width: 100%; height: auto; max-height: 40vh;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); border: 1px solid #222;
+        }
+
+        /* Controles do Player estilo Editor */
+        .player-bar {
+            width: 100%; max-width: 500px; display: flex; align-items: center; gap: 10px;
+            margin-top: 10px; padding: 5px 10px; box-sizing: border-box;
+        }
+        .btn-play { background: transparent; color: var(--text-main); border: none; font-size: 20px; cursor: pointer; padding: 5px; }
+        .timeline-slider { flex-grow: 1; accent-color: var(--zap-green); height: 4px; cursor: pointer; }
+        .time-display { font-family: monospace; font-size: 12px; color: var(--text-dim); }
+
+        /* --- 2. BARRA DE FERRAMENTAS (MIDDLE) --- */
+        .toolbar {
+            background: var(--bg-panel); border-bottom: 1px solid var(--border-color);
+            padding: 10px; display: flex; gap: 10px; overflow-x: auto; white-space: nowrap;
+            scrollbar-width: none; /* Firefox */
+        }
+        .toolbar::-webkit-scrollbar { display: none; } /* Chrome */
         
-        h1 { color: var(--zap-green); text-shadow: 0 0 10px rgba(37, 211, 102, 0.3); margin-bottom: 5px; font-size: 1.8rem; }
+        .tool-btn {
+            background: var(--bg-track); color: var(--text-main); border: 1px solid var(--border-color);
+            padding: 8px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .tool-btn:hover { background: var(--bg-hover); }
+        .tool-btn.primary { background: var(--zap-green); color: #000; font-weight: bold; border: none; }
         
-        .panel {
-            background-color: var(--bg-panel); padding: 20px;
-            border-radius: 12px; margin: 0 auto 20px auto;
-            max-width: 1000px; text-align: left;
-            border: 1px solid #222d34; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        }
-        
-        h3 { color: var(--zap-green); margin-top: 0; margin-bottom: 15px; font-size: 1.2rem; }
-
-        .top-controls { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .control-group { flex: 1; min-width: 250px; background: var(--bg-dark); padding: 15px; border-radius: 8px; border-left: 4px solid var(--zap-green); }
-        
-        textarea {
-            width: 100%; height: 80px; background: var(--bg-input); color: white;
-            border: 1px solid #222d34; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: vertical;
-        }
-
-        .radio-group { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; background: var(--bg-input); padding: 10px; border-radius: 6px;}
-        .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px;}
-
-        /* Linhas da Letra */
-        .lyric-row {
-            display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;
-            background-color: var(--bg-dark); padding: 12px; border-radius: 8px; border-left: 4px solid var(--zap-green);
-        }
-
-        input[type="text"] {
-            padding: 10px; border-radius: 6px; border: 1px solid transparent;
-            background-color: var(--bg-input); color: var(--text-main); font-size: 14px; transition: 0.2s;
-            flex-grow: 1; min-width: 80px;
-        }
-        input[type="text"]:focus { outline: none; border-color: var(--zap-green); }
-
-        /* Controles de Tempo Inteligentes */
-        .time-group { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; background: var(--bg-input); border-radius: 6px; padding-right: 5px;}
-        .time-group input { width: 75px !important; text-align: center; font-family: monospace; background: transparent;}
-        .btn-time { 
-            background: #3b4a54; color: white; border: none; border-radius: 4px; 
-            cursor: pointer; padding: 5px 8px; font-size: 12px; transition: 0.2s;
-        }
-        .btn-time:hover { background: var(--zap-green); color: black; }
-
-        .file-upload {
-            background-color: var(--bg-input); color: #8696a0; border-radius: 6px;
-            padding: 10px; cursor: pointer; text-align: center;
-            font-size: 14px; border: 1px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            width: 100px;
-        }
-        .file-upload:hover { border-color: var(--zap-green); }
         input[type="file"] { display: none; }
-        input[type="color"] { padding: 0; width: 42px; height: 42px; cursor: pointer; border: none; border-radius: 50%; flex-shrink: 0; }
-        
-        button { font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; border: none; }
-        .btn-add { background-color: var(--bg-input); color: var(--zap-green); padding: 10px 15px; border: 1px solid var(--zap-green); margin-top: 10px; width: 100%;}
-        .btn-add:hover { background-color: var(--zap-green); color: #000; }
-        .btn-remove { background-color: #f15c6d; color: white; padding: 10px 15px; flex-shrink: 0; }
-        
-        .action-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .btn-preview { background-color: #3b4a54; color: white; padding: 15px 30px; font-size: 18px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 2px solid #8696a0; }
-        .btn-preview:hover { background-color: #4b5a64; transform: translateY(-2px); }
-        .btn-record { background-color: var(--zap-green); color: #0b141a; padding: 15px 40px; font-size: 18px; border-radius: 30px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); }
-        .btn-record:hover { background-color: #21c05b; transform: translateY(-2px); }
-        .btn-preview:disabled, .btn-record:disabled { background-color: var(--bg-input); color: #8696a0; cursor: not-allowed; transform: none; border-color: transparent;}
 
-        .canvas-container { margin-top: 20px; display: flex; justify-content: center; width: 100%; }
-        canvas { background-color: #000; border: 2px solid #222d34; border-radius: 10px; max-width: 100%; height: auto; max-height: 50vh; }
-
-        @media (max-width: 768px) {
-            .lyric-row { flex-direction: column; align-items: stretch; }
-            .time-group { justify-content: space-between; width: 100%; }
-            .action-buttons button { width: 100%; }
+        /* --- 3. TIMELINE (CAMADAS/LAYERS) --- */
+        .timeline-area {
+            flex-grow: 1; overflow-y: auto; background-color: var(--bg-base);
+            padding: 10px; padding-bottom: 100px;
         }
+
+        .track-layer {
+            background: var(--bg-track); border: 1px solid var(--border-color);
+            border-radius: 8px; margin-bottom: 8px; overflow: hidden;
+            transition: 0.3s;
+        }
+
+        /* Resumo da Camada (Sempre visível) */
+        .track-summary {
+            display: flex; align-items: center; gap: 10px; padding: 12px;
+            cursor: pointer; user-select: none;
+        }
+        .track-summary:hover { background: var(--bg-hover); }
+        
+        .track-color-indicator { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .track-time-snippet { font-family: monospace; font-size: 11px; color: var(--zap-green); background: rgba(37, 211, 102, 0.1); padding: 2px 6px; border-radius: 4px; }
+        .track-name-snippet { font-size: 13px; font-weight: bold; width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-text-snippet { font-size: 13px; color: var(--text-dim); flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Editor da Camada (Expansível) */
+        .track-editor {
+            display: none; padding: 15px; border-top: 1px solid var(--border-color);
+            background: #181818; flex-direction: column; gap: 12px;
+        }
+        .track-layer.active .track-editor { display: flex; }
+        .track-layer.active { border-color: var(--zap-green); }
+
+        /* Inputs Internos do Editor */
+        .editor-row { display: flex; gap: 10px; align-items: center; }
+        .editor-input {
+            background: #000; border: 1px solid var(--border-color); color: var(--text-main);
+            padding: 8px 10px; border-radius: 4px; font-size: 13px; width: 100%; box-sizing: border-box;
+        }
+        .editor-input:focus { outline: none; border-color: var(--zap-green); }
+        
+        .time-box { display: flex; align-items: center; background: #000; border: 1px solid var(--border-color); border-radius: 4px; padding-right: 4px; flex: 1; }
+        .time-box input { background: transparent; border: none; color: var(--text-main); padding: 8px; width: 100%; font-family: monospace; font-size: 12px; text-align: center;}
+        .time-box input:focus { outline: none; }
+        .btn-capture { background: var(--bg-hover); color: var(--text-main); border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-capture:hover { background: var(--zap-green); color: #000; }
+
+        .btn-danger { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 13px;}
+
+        /* Modais Extras (Configurações e Importar) */
+        .modal { display: none; background: var(--bg-panel); padding: 15px; border-radius: 8px; margin: 10px; border: 1px solid var(--border-color); }
+        .modal.active { display: block; }
+        .modal textarea { width: 100%; height: 80px; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; box-sizing: border-box;}
     </style>
 </head>
 <body>
 
-    <h1>Zap48 Coded Lyrics Maker 🎤💚</h1>
-    <p style="color: #8696a0; margin-top: 0; font-size: 0.9rem;">Milissegundos suportados! Use o botão ⏱️ para capturar o tempo da música tocando.</p>
-    
-    <div class="panel">
-        <div class="top-controls">
-            <div class="control-group">
-                <h3>⚙️ Formato & Fundo</h3>
-                <div class="radio-group" style="background: transparent; padding: 0;">
-                    <label><input type="radio" name="format" value="canva" checked onchange="atualizarFormato()"> Canva (9:16)</label>
-                    <label><input type="radio" name="format" value="yt" onchange="atualizarFormato()"> YouTube (16:9)</label>
-                </div>
-                <br>
-                <label class="file-upload" for="bg-media" style="display: block; width: auto;">
-                    <span id="bg-label">🎵 Escolher Música ou Vídeo...</span>
-                </label>
-                <input type="file" id="bg-media" accept="audio/*, video/*" onchange="carregarMidiaFundo(this)">
-            </div>
-
-            <div class="control-group">
-                <h3>🎨 Estilo Visual</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="estilo" value="avatar" checked> Com Foto do Membro</label>
-                    <label><input type="radio" name="estilo" value="texto"> Somente Texto (Clean)</label>
-                </div>
-                <p style="font-size: 12px; color: #8696a0; margin-top: 5px;">*A opção "Somente Texto" esconde a imagem do membro e foca na letra, usando a cor apenas no nome.</p>
-            </div>
+    <div class="monitor-area">
+        <div class="canvas-wrapper">
+            <canvas id="videoCanvas" width="1080" height="1920"></canvas>
+        </div>
+        <div class="player-bar">
+            <button class="btn-play" id="mainPlayBtn" onclick="togglePlayMidia()">▶</button>
+            <span class="time-display" id="time-current">00:00</span>
+            <input type="range" class="timeline-slider" id="audio-seekbar" min="0" max="100" value="0" step="0.1" oninput="seekAudio()">
+            <span class="time-display" id="time-total">00:00</span>
         </div>
     </div>
 
-    <div class="panel">
-        <h3>Painel de Letras 📝</h3>
-        <div class="top-controls" style="margin-bottom: 10px;">
-             <textarea id="import-text" placeholder="Importação Rápida. Cole aqui:&#10;Sakura: I remember the day&#10;Chaewon: When we first met"></textarea>
-             <button class="btn-add" style="margin-top:5px;" onclick="importarLetras()">⬇️ Importar Letras</button>
-        </div>
-        <div id="lyrics-list"></div>
-        <button class="btn-add" onclick="adicionarLinha()">+ Adicionar Linha Vazia</button>
+    <div class="toolbar">
+        <label class="tool-btn" for="bg-media">🎵 Importar Fundo</label>
+        <input type="file" id="bg-media" accept="audio/*, video/*" onchange="carregarMidiaFundo(this)">
+        
+        <button class="tool-btn" onclick="adicionarCamada()">➕ Add Texto</button>
+        <button class="tool-btn" onclick="toggleModal('modal-import')">📋 Colar Letra</button>
+        <button class="tool-btn" onclick="toggleModal('modal-config')">⚙️ Formato</button>
+        <button class="tool-btn primary" id="startBtn" onclick="iniciarGravacao()">Exportar</button>
     </div>
 
-    <div class="action-buttons">
-        <button id="previewBtn" class="btn-preview" onclick="alternarPreview()">▶️ Tocar / Testar Sincronia</button>
-        <button id="startBtn" class="btn-record" onclick="iniciarGravacao()">🔴 Gravar Vídeo</button>
+    <div id="modal-import" class="modal">
+        <textarea id="import-text" placeholder="Cole: Sakura: I remember..."></textarea>
+        <button class="tool-btn primary" style="margin-top: 10px; width: 100%; justify-content: center;" onclick="importarLetras()">Gerar Camadas</button>
     </div>
     
-    <div class="canvas-container">
-        <canvas id="videoCanvas" width="1080" height="1920"></canvas>
+    <div id="modal-config" class="modal">
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--zap-green);">Proporção do Projeto</p>
+        <label><input type="radio" name="format" value="canva" checked onchange="atualizarFormato()"> 9:16 (TikTok)</label><br>
+        <label><input type="radio" name="format" value="yt" onchange="atualizarFormato()"> 16:9 (YouTube)</label>
+        
+        <p style="margin: 15px 0 10px 0; font-size: 13px; color: var(--zap-green);">Estilo Visual</p>
+        <label><input type="radio" name="estilo" value="avatar" checked> Com Foto/Avatar</label><br>
+        <label><input type="radio" name="estilo" value="texto"> Somente Texto</label>
     </div>
+
+    <div class="timeline-area" id="timeline-tracks">
+        </div>
 
     <script>
-        const lyricsList = document.getElementById('lyrics-list');
         const canvas = document.getElementById('videoCanvas');
         const ctx = canvas.getContext('2d');
+        const tracksContainer = document.getElementById('timeline-tracks');
         const startBtn = document.getElementById('startBtn');
-        const previewBtn = document.getElementById('previewBtn');
-
-        let mediaRecorder;
-        let recordedChunks = [];
-        let startTime = null;
-        let animationFrameId;
-        let activeLyrics = [];
-        let maxVideoTime = 0;
         
-        let bgMediaElement = null;
-        let audioContext = null;
-        let isPreviewMode = false;
-        let finalMimeType = 'video/webm';
+        // Player Controls
+        const seekbar = document.getElementById('audio-seekbar');
+        const timeCurrentDisp = document.getElementById('time-current');
+        const timeTotalDisp = document.getElementById('time-total');
+        const mainPlayBtn = document.getElementById('mainPlayBtn');
+
+        let mediaRecorder; let recordedChunks = []; let startTime = null;
+        let animationFrameId; let activeLyrics = []; let maxVideoTime = 0;
+        let bgMediaElement = null; let audioContext = null; let finalMimeType = 'video/webm';
+
+        // --- SISTEMA DE UI E MODAIS ---
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.toggle('active');
+        }
+
+        // Abre uma camada e fecha as outras
+        function toggleTrack(summaryElement) {
+            const allTracks = document.querySelectorAll('.track-layer');
+            const parentTrack = summaryElement.parentElement;
+            
+            if (parentTrack.classList.contains('active')) {
+                parentTrack.classList.remove('active'); // Só fecha
+            } else {
+                allTracks.forEach(t => t.classList.remove('active')); // Fecha todas
+                parentTrack.classList.add('active'); // Abre a clicada
+                parentTrack.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function formatarTempoVisual(segundos) {
+            if (isNaN(segundos)) return "00:00";
+            const min = Math.floor(segundos / 60); const seg = Math.floor(segundos % 60);
+            return `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+        }
 
         function atualizarFormato() {
             const formato = document.querySelector('input[name="format"]:checked').value;
@@ -171,88 +212,143 @@
             canvas.height = (formato === 'yt') ? 1080 : 1920;
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-        window.onload = atualizarFormato;
+        window.onload = () => { atualizarFormato(); adicionarCamada("Exemplo", "Sua letra aqui..."); };
 
+        // --- MOTOR DE MÍDIA E PLAYER ---
         function carregarMidiaFundo(input) {
-            const file = input.files[0];
-            if (!file) return;
-            document.getElementById('bg-label').innerText = file.name;
-            document.getElementById('bg-label').style.color = 'var(--zap-green)';
-
+            const file = input.files[0]; if (!file) return;
             const isVideo = file.type.startsWith('video');
+            if (bgMediaElement) { bgMediaElement.pause(); bgMediaElement.src = ''; }
+            
             bgMediaElement = document.createElement(isVideo ? 'video' : 'audio');
             bgMediaElement.src = URL.createObjectURL(file);
             if (isVideo) { bgMediaElement.muted = false; bgMediaElement.playsInline = true; }
+
+            bgMediaElement.onloadedmetadata = () => {
+                seekbar.max = bgMediaElement.duration;
+                timeTotalDisp.innerText = formatarTempoVisual(bgMediaElement.duration);
+                // Força o primeiro frame se for vídeo
+                if(isVideo) setTimeout(() => ctx.drawImage(bgMediaElement, 0, 0, canvas.width, canvas.height), 200);
+            };
+
+            bgMediaElement.ontimeupdate = () => {
+                seekbar.value = bgMediaElement.currentTime;
+                timeCurrentDisp.innerText = formatarTempoVisual(bgMediaElement.currentTime);
+            };
+
+            bgMediaElement.onplay = () => mainPlayBtn.innerText = "⏸";
+            bgMediaElement.onpause = () => mainPlayBtn.innerText = "▶";
+            
+            // Inicia o loop de preview visual quando carrega a mídia
+            if(!animationFrameId) requestAnimationFrame(drawFrameLive);
         }
 
-        function handleFileUpload(input) {
-            const row = input.closest('.lyric-row');
-            const file = input.files[0];
-            const label = row.querySelector('.file-upload-label');
-            if (file && file.type.startsWith('image/')) {
-                label.innerText = "Foto ✓"; label.style.color = 'var(--zap-green)';
-            }
+        function togglePlayMidia() {
+            if (!bgMediaElement) return;
+            if (bgMediaElement.paused) bgMediaElement.play(); else bgMediaElement.pause();
         }
 
-        // --- NOVO: Captura de Tempo Inteligente ---
+        function seekAudio() {
+            if (!bgMediaElement) return;
+            bgMediaElement.currentTime = seekbar.value;
+            timeCurrentDisp.innerText = formatarTempoVisual(seekbar.value);
+        }
+
         function capturarTempoAtual(btn, tipo) {
-            if (!bgMediaElement) {
-                alert("Por favor, adicione uma música ou vídeo de fundo primeiro!");
-                return;
-            }
+            if (!bgMediaElement) { alert("Importe um fundo primeiro!"); return; }
             const tempoAtual = bgMediaElement.currentTime;
-            const min = Math.floor(tempoAtual / 60);
-            const seg = (tempoAtual % 60).toFixed(2); // Retorna milissegundos precisos
+            const min = Math.floor(tempoAtual / 60); const seg = (tempoAtual % 60).toFixed(2);
             const tempoFormatado = `${min.toString().padStart(2, '0')}:${seg.padStart(5, '0')}`;
             
-            const row = btn.closest('.lyric-row');
-            if (tipo === 'start') row.querySelector('.input-start').value = tempoFormatado;
-            else row.querySelector('.input-end').value = tempoFormatado;
+            const track = btn.closest('.track-layer');
+            const inputTarget = track.querySelector(tipo === 'start' ? '.input-start' : '.input-end');
+            inputTarget.value = tempoFormatado;
+            
+            atualizarResumoTrack(track); // Atualiza a pílula de tempo externa
         }
 
-        function converterTempoParaMs(tempoString) {
-            if (!tempoString) return 0;
-            if (!tempoString.includes(':')) return (parseFloat(tempoString) || 0) * 1000;
-            const partes = tempoString.split(':');
-            return ((parseInt(partes[0], 10) || 0) * 60 + (parseFloat(partes[1]) || 0)) * 1000;
+        // --- GERENCIAMENTO DE CAMADAS (LAYERS) ---
+        function atualizarResumoTrack(track) {
+            const color = track.querySelector('.input-color').value;
+            const name = track.querySelector('.input-member').value || 'Sem Nome';
+            const text = track.querySelector('.input-text').value || '...';
+            const start = track.querySelector('.input-start').value || '00:00';
+            
+            track.querySelector('.track-color-indicator').style.backgroundColor = color;
+            track.querySelector('.track-name-snippet').innerText = name;
+            track.querySelector('.track-text-snippet').innerText = text;
+            track.querySelector('.track-time-snippet').innerText = start;
         }
 
-        function adicionarLinha(memberStr = '', textStr = '') {
-            const rowId = `row-${Date.now()}-${Math.floor(Math.random()*1000)}`;
-            const row = document.createElement('div');
-            row.className = 'lyric-row';
-            row.innerHTML = `
-                <label class="file-upload" for="file-${rowId}"><span class="file-upload-label">Foto (PNG/JPG)</span></label>
-                <input type="file" id="file-${rowId}" class="input-file" accept="image/png, image/jpeg" onchange="handleFileUpload(this)">
-                <input type="color" class="input-color" value="#25D366" title="Cor do Membro">
-                <input type="text" class="input-member" placeholder="Nome" value="${memberStr}">
-                <input type="text" class="input-text" placeholder="Letra da música..." value="${textStr}" style="flex-grow: 3;">
-                
-                <div class="time-group">
-                    <input type="text" class="input-start" placeholder="00:00.00" title="Início">
-                    <button class="btn-time" onclick="capturarTempoAtual(this, 'start')" title="Pegar tempo da música tocando">⏱️</button>
-                    <span style="color: #8696a0; margin: 0 5px;">até</span>
-                    <input type="text" class="input-end" placeholder="00:00.00" title="Fim">
-                    <button class="btn-time" onclick="capturarTempoAtual(this, 'end')" title="Pegar tempo da música tocando">⏱️</button>
+        function lidarUploadFoto(input) {
+            const label = input.previousElementSibling;
+            if (input.files[0]) { label.innerText = "🖼️ Imagem OK"; label.style.color = 'var(--zap-green)'; }
+        }
+
+        function adicionarCamada(memberStr = '', textStr = '') {
+            const layerId = `layer-${Date.now()}`;
+            const div = document.createElement('div');
+            div.className = 'track-layer active'; // Cria já aberto
+            div.innerHTML = `
+                <div class="track-summary" onclick="toggleTrack(this)">
+                    <div class="track-color-indicator" style="background: #25D366;"></div>
+                    <div class="track-time-snippet">00:00</div>
+                    <div class="track-name-snippet">${memberStr || 'Nome'}</div>
+                    <div class="track-text-snippet">${textStr || 'Letra...'}</div>
                 </div>
-                <button class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                
+                <div class="track-editor">
+                    <div class="editor-row">
+                        <input type="color" class="input-color" value="#25D366" oninput="atualizarResumoTrack(this.closest('.track-layer'))" style="width: 40px; height: 35px; padding:0; border:none; border-radius:4px; cursor:pointer;">
+                        <input type="text" class="editor-input input-member" placeholder="Cantor/Membro" value="${memberStr}" oninput="atualizarResumoTrack(this.closest('.track-layer'))">
+                    </div>
+                    
+                    <input type="text" class="editor-input input-text" placeholder="Letra da música" value="${textStr}" oninput="atualizarResumoTrack(this.closest('.track-layer'))">
+                    
+                    <div class="editor-row">
+                        <div class="time-box">
+                            <input type="text" class="input-start" placeholder="Início (00:00)" oninput="atualizarResumoTrack(this.closest('.track-layer'))">
+                            <button class="btn-capture" onclick="capturarTempoAtual(this, 'start')">⏱️</button>
+                        </div>
+                        <div class="time-box">
+                            <input type="text" class="input-end" placeholder="Fim (00:00)">
+                            <button class="btn-capture" onclick="capturarTempoAtual(this, 'end')">⏱️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-row">
+                        <label class="tool-btn" style="flex:1; justify-content:center;" for="file-${layerId}">🖼️ Upload Foto (PNG)</label>
+                        <input type="file" id="file-${layerId}" class="input-file" accept="image/png, image/jpeg" onchange="lidarUploadFoto(this)">
+                        <button class="btn-danger" style="flex: 0.3;" onclick="this.closest('.track-layer').remove()">Excluir</button>
+                    </div>
+                </div>
             `;
-            lyricsList.appendChild(row);
+            
+            // Fecha as outras para focar na nova
+            document.querySelectorAll('.track-layer').forEach(t => t.classList.remove('active'));
+            tracksContainer.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            atualizarResumoTrack(div);
         }
 
         function importarLetras() {
             const text = document.getElementById('import-text').value;
             const linhas = text.split('\n');
-            let adicionou = false;
             linhas.forEach(linha => {
                 if(!linha.trim()) return;
                 const partes = linha.split(':');
-                if(partes.length >= 2) {
-                    adicionarLinha(partes[0].trim(), partes.slice(1).join(':').trim());
-                    adicionou = true;
-                }
+                if(partes.length >= 2) adicionarCamada(partes[0].trim(), partes.slice(1).join(':').trim());
             });
-            if(adicionou) document.getElementById('import-text').value = ''; 
+            document.getElementById('import-text').value = '';
+            toggleModal('modal-import');
+        }
+
+        // --- SISTEMA DE RENDERIZAÇÃO (CANVAS) ---
+        function converterTempoParaMs(tempoString) {
+            if (!tempoString) return 0;
+            if (!tempoString.includes(':')) return (parseFloat(tempoString) || 0) * 1000;
+            const partes = tempoString.split(':');
+            return ((parseInt(partes[0], 10) || 0) * 60 + (parseFloat(partes[1]) || 0)) * 1000;
         }
 
         function carregarImagemDoArquivo(file) {
@@ -264,17 +360,17 @@
             });
         }
 
-        async function capturarLetras() {
-            const linhas = document.querySelectorAll('.lyric-row');
+        async function prepararLayers() {
+            const tracks = document.querySelectorAll('.track-layer');
             const array = []; maxVideoTime = 0;
-            for (const linha of linhas) {
-                const member = linha.querySelector('.input-member').value;
-                const text = linha.querySelector('.input-text').value;
-                const start = converterTempoParaMs(linha.querySelector('.input-start').value);
-                const end = converterTempoParaMs(linha.querySelector('.input-end').value);
+            for (const track of tracks) {
+                const member = track.querySelector('.input-member').value;
+                const text = track.querySelector('.input-text').value;
+                const start = converterTempoParaMs(track.querySelector('.input-start').value);
+                const end = converterTempoParaMs(track.querySelector('.input-end').value);
                 if (member && text) {
-                    const fotoElement = await carregarImagemDoArquivo(linha.querySelector('.input-file').files[0]);
-                    array.push({ member, text, color: linha.querySelector('.input-color').value, start, end, fotoElement });
+                    const fotoElement = await carregarImagemDoArquivo(track.querySelector('.input-file').files[0]);
+                    array.push({ member, text, color: track.querySelector('.input-color').value, start, end, fotoElement });
                     if (end > maxVideoTime) maxVideoTime = end;
                 }
             }
@@ -282,57 +378,70 @@
             return array;
         }
 
-        function drawFrame(timestamp) {
-            if (!startTime) startTime = timestamp;
-            const tempoAtual = timestamp - startTime; 
-            
+        // Loop contínuo que roda enquanto o usuário edita/toca (Preview Realtime)
+        function drawFrameLive() {
+            if(mediaRecorder && mediaRecorder.state === 'recording') return; // Se tiver gravando, o loop de gravação assume
+            renderizarCanvas(bgMediaElement ? bgMediaElement.currentTime * 1000 : 0);
+            animationFrameId = requestAnimationFrame(drawFrameLive);
+        }
+
+        // Função isolada de desenho
+        function renderizarCanvas(tempoMs) {
             const isYT = document.querySelector('input[name="format"]:checked').value === 'yt';
             const apenasTexto = document.querySelector('input[name="estilo"]:checked').value === 'texto';
 
             ctx.fillStyle = '#0b141a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (bgMediaElement && bgMediaElement.tagName === 'VIDEO' && !bgMediaElement.paused) {
+            if (bgMediaElement && bgMediaElement.tagName === 'VIDEO') {
                 const vidRatio = bgMediaElement.videoWidth / bgMediaElement.videoHeight;
                 const canvasRatio = canvas.width / canvas.height;
                 let drawW = canvas.width, drawH = canvas.height, drawX = 0, drawY = 0;
                 if (canvasRatio > vidRatio) { drawH = canvas.width / vidRatio; drawY = (canvas.height - drawH) / 2; } 
                 else { drawW = canvas.height * vidRatio; drawX = (canvas.width - drawW) / 2; }
                 ctx.drawImage(bgMediaElement, drawX, drawY, drawW, drawH);
-                ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0,0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0,0, canvas.width, canvas.height); // Overlay escuro
             }
 
-            let linhaAtual = activeLyrics.find(l => tempoAtual >= l.start && tempoAtual <= l.end);
+            // Pega as letras do DOM direto pro preview não precisar compilar o array toda hora
+            const tracks = document.querySelectorAll('.track-layer');
+            let linhaAtual = null;
+            tracks.forEach(track => {
+                const start = converterTempoParaMs(track.querySelector('.input-start').value);
+                const end = converterTempoParaMs(track.querySelector('.input-end').value);
+                if(tempoMs >= start && tempoMs <= end) {
+                    linhaAtual = {
+                        member: track.querySelector('.input-member').value,
+                        text: track.querySelector('.input-text').value,
+                        color: track.querySelector('.input-color').value,
+                        // Para o preview live, fotoElement é muito pesado extrair do DOM, ignoramos a foto no scrub se não foi compilado
+                    };
+                }
+            });
+            
+            // Se tivermos rodando via array (durante gravação), usamos o activeLyrics
+            if(activeLyrics.length > 0) {
+                const a = activeLyrics.find(l => tempoMs >= l.start && tempoMs <= l.end);
+                if(a) linhaAtual = a;
+            }
 
             if (linhaAtual) {
                 ctx.shadowColor = "black"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
 
                 if (apenasTexto) {
-                    // --- MODO: SOMENTE TEXTO ---
-                    ctx.textAlign = 'center';
-                    const textX = canvas.width / 2;
-                    const nameY = canvas.height / 2 - 40; // Centralizado
-
-                    ctx.fillStyle = linhaAtual.color;
-                    ctx.font = 'bold 80px sans-serif'; 
-                    ctx.fillText(linhaAtual.member, textX, nameY);
-
-                    ctx.fillStyle = '#ffffff'; 
-                    ctx.font = '60px sans-serif'; 
-                    ctx.fillText(linhaAtual.text, textX, nameY + 120);
+                    ctx.textAlign = 'center'; const textX = canvas.width / 2; const nameY = canvas.height / 2 - 40;
+                    ctx.fillStyle = linhaAtual.color; ctx.font = 'bold 80px sans-serif'; ctx.fillText(linhaAtual.member, textX, nameY);
+                    ctx.fillStyle = '#ffffff'; ctx.font = '60px sans-serif'; ctx.fillText(linhaAtual.text, textX, nameY + 120);
                 } else {
-                    // --- MODO: COM AVATAR/COR ---
                     const targetSize = isYT ? 500 : 600;
                     const targetX = isYT ? 200 : (canvas.width - targetSize) / 2;
                     const targetY = isYT ? (canvas.height - targetSize) / 2 : 400;
 
                     if (linhaAtual.fotoElement) {
-                        const img = linhaAtual.fotoElement;
-                        const imgRatio = img.width / img.height;
+                        const img = linhaAtual.fotoElement; const imgRatio = img.width / img.height;
                         let finalW = targetSize, finalH = targetSize;
                         if (imgRatio > 1) finalH = targetSize / imgRatio; else finalW = targetSize * imgRatio;
                         ctx.drawImage(img, targetX + (targetSize - finalW) / 2, targetY + (targetSize - finalH) / 2, finalW, finalH);
                     } else {
-                        // Caixa colorida de fallback
                         ctx.fillStyle = linhaAtual.color; ctx.fillRect(targetX, targetY, targetSize, targetSize); 
                     }
 
@@ -343,34 +452,30 @@
                     ctx.font = 'bold 80px sans-serif'; ctx.fillText(linhaAtual.member, textX, nameY);
                     ctx.fillStyle = '#ffffff'; ctx.font = '60px sans-serif'; ctx.fillText(linhaAtual.text, textX, isYT ? nameY + 120 : nameY + 100);
                 }
-
                 ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
             }
-
-            if (tempoAtual > maxVideoTime + 500) { pararProcesso(); return; }
-            animationFrameId = requestAnimationFrame(drawFrame);
         }
 
-        async function alternarPreview() {
-            if (isPreviewMode) { pararProcesso(); return; }
-            startBtn.disabled = true; previewBtn.innerText = "⏹ Parar Preview";
-            activeLyrics = await capturarLetras();
-            isPreviewMode = true; startTime = null;
+        // --- SISTEMA DE GRAVAÇÃO ---
+        function drawFrameRecord(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const tempoAtual = timestamp - startTime; 
+            
+            renderizarCanvas(tempoAtual);
 
-            if (bgMediaElement) { bgMediaElement.currentTime = 0; bgMediaElement.play(); }
-            canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            drawFrame(performance.now());
+            if (tempoAtual > maxVideoTime + 500) { pararGravacao(); return; }
+            animationFrameId = requestAnimationFrame(drawFrameRecord);
         }
 
         async function iniciarGravacao() {
-            previewBtn.disabled = true; startBtn.disabled = true; startBtn.innerText = "Preparando...";
-            activeLyrics = await capturarLetras();
+            cancelAnimationFrame(animationFrameId); // Para o preview
+            startBtn.disabled = true; startBtn.innerText = "⏳ Processando...";
             
-            if (activeLyrics.length === 0 && !bgMediaElement) { alert("Adicione letras ou fundo!"); resetarBotoes(); return; }
+            activeLyrics = await prepararLayers();
+            if (activeLyrics.length === 0 && !bgMediaElement) { alert("Timeline vazia!"); resetBtn(); return; }
 
-            isPreviewMode = false; recordedChunks = []; startTime = null;
-            startBtn.innerText = "Gravando... Aguarde!";
-            canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            recordedChunks = []; startTime = null;
+            startBtn.innerText = "🔴 Gravando (Não Saia)...";
 
             const canvasStream = canvas.captureStream(30);
             let finalTracks = [...canvasStream.getVideoTracks()];
@@ -400,14 +505,13 @@
             mediaRecorder.onstop = salvarVideo;
 
             mediaRecorder.start();
-            drawFrame(performance.now());
+            drawFrameRecord(performance.now());
         }
 
-        function pararProcesso() {
+        function pararGravacao() {
             cancelAnimationFrame(animationFrameId);
             if (bgMediaElement) { bgMediaElement.pause(); bgMediaElement.currentTime = 0; }
-            if (!isPreviewMode && mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); } 
-            else { resetarBotoes(); }
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
         }
 
         function salvarVideo() {
@@ -415,18 +519,15 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url;
             const extensao = finalMimeType.includes('mp4') ? 'mp4' : 'webm';
-            const isYT = document.querySelector('input[name="format"]:checked').value === 'yt';
-            a.download = `zap48_lyrics_${isYT ? 'youtube' : 'canva'}.${extensao}`;
-            a.click(); URL.revokeObjectURL(url); resetarBotoes();
+            a.download = `zap48_export.${extensao}`;
+            a.click(); URL.revokeObjectURL(url); resetBtn();
+            
+            // Volta pro preview
+            activeLyrics = [];
+            requestAnimationFrame(drawFrameLive);
         }
 
-        function resetarBotoes() {
-            isPreviewMode = false;
-            startBtn.disabled = false; startBtn.innerText = "🔴 Gravar Vídeo";
-            previewBtn.disabled = false; previewBtn.innerText = "▶️ Tocar / Testar Sincronia";
-        }
-
-        adicionarLinha();
+        function resetBtn() { startBtn.disabled = false; startBtn.innerText = "Exportar"; }
     </script>
 </body>
 </html>
